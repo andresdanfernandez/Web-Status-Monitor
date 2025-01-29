@@ -3,6 +3,9 @@
 #include <string>
 #include <vector>
 #include <sys/socket.h>
+#include <netinet/in.h>
+#include <unistd.h>
+
 
 int main(int argc, char* argv[]) {
 
@@ -11,12 +14,21 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    // returns a file descriptor (an int that is non-negative unless socket error)
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
     if (sockfd < 0) {
     std::cerr << "Error creating socket\n";
     return -1;
     }
+
+    // this is a struct that specifies the IP address and port number
+    struct sockaddr_in server_addr; 
+
+    // AF_INET for TCP
+    server_addr.sin_family = AF_INET;
+    // we use htons to convert 8080 to network byte order
+    server_addr.sin_port = htons(8080);
 
     std::string filename = argv[1];
 
@@ -41,13 +53,18 @@ int main(int argc, char* argv[]) {
         urls.push_back(url);
     }
 
-    // start with one url -> http://fiu.gov
-    std::string firstUrl = urls[0];
+    // we want to figure out whether we see http or https
 
+    for(std::string url : urls) {
+        if(url.find("https") != std::string::npos) {
+            std::cout << url << '\n';
+        } else {
+            std::cout << url << '\n';
+        }
+    }
 
-
-
-
+    close(sockfd);
     file.close();
+    
     return 0;
 }
